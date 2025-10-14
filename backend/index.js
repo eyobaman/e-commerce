@@ -13,8 +13,8 @@ app.use(cors());
 //Database connection with MongoDB
 mongoose
   .connect(
-    "mongodb+srv://eyobayalewwmed_db_user:Ethiopia123@cluster4.ato4lla.mongodb.net/?retryWrites=true&w=majority&appName=Cluster4"
-    // "mongodb://eyobayalewwmed_db_user:Ethiopia123@ac-klnght3-shard-00-00.ato4lla.mongodb.net:27017,ac-klnght3-shard-00-01.ato4lla.mongodb.net:27017,ac-klnght3-shard-00-02.ato4lla.mongodb.net:27017/?ssl=true&replicaSet=atlas-e1nwfa-shard-0&authSource=admin&retryWrites=true&w=majority&appName=Cluster4"
+    //"mongodb+srv://eyobayalewwmed_db_user:Ethiopia123@cluster4.ato4lla.mongodb.net/?retryWrites=true&w=majority&appName=Cluster4"
+    "mongodb://eyobayalewwmed_db_user:Ethiopia123@ac-klnght3-shard-00-00.ato4lla.mongodb.net:27017,ac-klnght3-shard-00-01.ato4lla.mongodb.net:27017,ac-klnght3-shard-00-02.ato4lla.mongodb.net:27017/?ssl=true&replicaSet=atlas-e1nwfa-shard-0&authSource=admin&retryWrites=true&w=majority&appName=Cluster4"
   )
   .then(() => console.log("Connected"))
   .catch((err) => console.error(err));
@@ -87,8 +87,17 @@ const Product = mongoose.model("Product", {
 });
 
 app.post("/addproduct", async (req, res) => {
+  let products = await Product.find({});
+  let id;
+  if (products.length > 0) {
+    let last_product_array = products.slice(-1);
+    let last_product = last_product_array[0];
+    id = last_product.id + 1;
+  } else {
+    id = 1;
+  }
   const product = new Product({
-    id: req.body.id,
+    id: id,
     name: req.body.name,
     image: req.body.image,
     category: req.body.category,
@@ -102,6 +111,23 @@ app.post("/addproduct", async (req, res) => {
     success: true,
     name: req.body.name,
   });
+});
+
+// Creating API for deleting products
+app.post("/removeproduct", async (req, res) => {
+  await Product.findOneAndDelete({ id: req.body.id });
+  console.log("Removed");
+  res.json({
+    success: true,
+    name: req.body.name,
+  });
+});
+
+// Creating API for getting all products
+app.get("/allproducts", async (req, res) => {
+  let products = await Product.find({});
+  console.log("All Products Fetched");
+  res.send(products);
 });
 
 app.listen(port, (error) => {
